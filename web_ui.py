@@ -37,7 +37,7 @@ if uploaded_pdf:
                 pix = page.get_pixmap(dpi=config.DPI)
                 buf = BytesIO(pix.tobytes("png"))
                 image_buffers.append((page_num, buf))
-        st.success(f"Converted {len(image_buffers)} pages to images in memory.")
+        st.success(f"Reviewing {len(image_buffers)} pages...")
 
         # Review all slides together
         all_issues = review_slides(image_buffers)
