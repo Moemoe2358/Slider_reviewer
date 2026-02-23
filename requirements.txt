@@ -1,2 +1,5 @@
-PyPDF2
-pdfplumber
+streamlit
+pdf2image
+pandas
+python-dotenv
+openai
