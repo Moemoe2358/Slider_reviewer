@@ -77,14 +77,25 @@ try:
 except FileNotFoundError:
     st.warning("Sample PDF (test_en.pdf) is not available. Please upload your own PDF.")
 
-if sample_pdf_bytes:
-    show_sample_pdf_buttons(sample_pdf_bytes)
-else:
-    st.session_state["use_sample"] = False
-
 hide_upload = st.session_state.get("use_sample", False) or st.session_state.get("review_started", False)
 if not hide_upload:
-    uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
+    col_upload, col_sample = st.columns([2, 1])
+    with col_sample:
+        if sample_pdf_bytes:
+            if "use_sample" not in st.session_state:
+                st.session_state["use_sample"] = False
+            if st.button("Use sample PDF for review", use_container_width=True):
+                st.session_state["use_sample"] = True
+                st.rerun()
+            st.download_button(
+                label="Download sample PDF",
+                data=sample_pdf_bytes,
+                file_name="test_en.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+    with col_upload:
+        uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
 else:
     uploaded_pdf = None
 
