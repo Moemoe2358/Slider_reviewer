@@ -1,5 +1,5 @@
 streamlit
-pdf2image
+pymupdf
 pandas
 python-dotenv
 openai

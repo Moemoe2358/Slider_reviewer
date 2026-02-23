@@ -1,5 +1,5 @@
 import streamlit as st
-from pdf2image import convert_from_path
+import fitz  # PyMuPDF
 from io import BytesIO
 import tempfile
 import csv
@@ -16,8 +16,8 @@ if uploaded_pdf:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
         tmp_pdf.write(uploaded_pdf.read())
         tmp_pdf_path = tmp_pdf.name
-    images = convert_from_path(tmp_pdf_path, dpi=config.DPI)
-    total_pages = len(images)
+    doc = fitz.open(tmp_pdf_path)
+    total_pages = len(doc)
     st.write(f"PDF has {total_pages} pages.")
     page_start = st.number_input("Start page", min_value=1, max_value=total_pages, value=1)
     page_end = st.number_input("End page", min_value=page_start, max_value=total_pages, value=total_pages)
@@ -28,11 +28,10 @@ if uploaded_pdf:
     elif st.button("Start Review"):
         image_buffers = []
         for page_num in range(page_start, page_end + 1):
-            if page_num - 1 < len(images):
-                image = images[page_num - 1]
-                buf = BytesIO()
-                image.save(buf, format="PNG")
-                buf.seek(0)
+            if page_num - 1 < len(doc):
+                page = doc[page_num - 1]
+                pix = page.get_pixmap(dpi=config.DPI)
+                buf = BytesIO(pix.tobytes("png"))
                 image_buffers.append((page_num, buf))
         st.success(f"Converted {len(image_buffers)} pages to images in memory.")
 
@@ -87,5 +86,6 @@ if uploaded_pdf:
         else:
             st.info("No issues found.")
 
-        # Clean up temp file
-        os.remove(tmp_pdf_path)
+    doc.close()
+    # Clean up temp file
+    os.remove(tmp_pdf_path)
