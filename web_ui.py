@@ -8,7 +8,11 @@ import config
 from chatgpt_api import review_slides
 
 st.title("Slide Reviewer")
-st.markdown("**You can select a page range for review. Maximum 5 pages at a time.**")
+st.markdown("""
+**You can select a page range for review. Maximum 5 pages at a time.**
+
+This tool allows you to upload a PDF, select specific pages, and get an AI-powered review for format, logic, and typos. Download the results as a CSV file.
+""")
 
 uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
 
@@ -48,7 +52,7 @@ if uploaded_pdf:
                 html = '''<style>
                 table.custom-table {width: 100%; border-collapse: collapse;}
                 table.custom-table th, table.custom-table td {border: 1px solid #ddd; padding: 8px;}
-                table.custom-table th {background: #f4f4f4;}
+                table.custom-table th {background: none;}
                 table.custom-table td {vertical-align: top;}
                 table.custom-table td.desc-col {max-width: 200px; min-width: 120px; word-break: break-word; white-space: pre-line;}
                 table.custom-table td.sugg-col {max-width: 200px; min-width: 120px; word-break: break-word; white-space: pre-line;}
