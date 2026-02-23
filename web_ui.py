@@ -16,18 +16,24 @@ This tool allows you to upload a PDF (such as slides), select specific pages, an
 If you don't have a PDF, you can download a sample file below to test the tool.
 """)
 sample_pdf_bytes = None
-with open("test.pdf", "rb") as f:
-    sample_pdf_bytes = f.read()
+try:
+    with open("test.pdf", "rb") as f:
+        sample_pdf_bytes = f.read()
+except FileNotFoundError:
+    st.warning("Sample PDF (test.pdf) is not available. Please upload your own PDF.")
 col1, col2 = st.columns(2)
-with col1:
-    st.download_button(
-        label="Download sample PDF (test.pdf)",
-        data=sample_pdf_bytes,
-        file_name="test.pdf",
-        mime="application/pdf"
-    )
-with col2:
-    use_sample = st.button("Use sample PDF for review")
+if sample_pdf_bytes:
+    with col1:
+        st.download_button(
+            label="Download sample PDF (test.pdf)",
+            data=sample_pdf_bytes,
+            file_name="test.pdf",
+            mime="application/pdf"
+        )
+    with col2:
+        use_sample = st.button("Use sample PDF for review")
+else:
+    use_sample = False
 
 uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
 
