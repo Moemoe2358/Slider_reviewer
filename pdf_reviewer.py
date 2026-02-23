@@ -3,11 +3,25 @@ pdf_reviewer.py
 Main script for reviewing PDF files: extract text, add comments, and basic manipulation.
 """
 
-from pdf2image import convert_from_path
+import fitz  # PyMuPDF
 from io import BytesIO
 import config
 from chatgpt_api import review_slides
 import csv
+
+
+def pdf_to_images_pymupdf(pdf_path, page_start, page_end):
+    """Convert PDF pages to images using PyMuPDF (fitz). Returns list of (page_num, BytesIO)."""
+    image_buffers = []
+    doc = fitz.open(pdf_path)
+    for page_num in range(page_start, page_end + 1):
+        if page_num - 1 < len(doc):
+            page = doc[page_num - 1]
+            pix = page.get_pixmap(dpi=config.DPI)
+            buf = BytesIO(pix.tobytes("png"))
+            image_buffers.append((page_num, buf))
+    doc.close()
+    return image_buffers
 
 
 def main():
@@ -15,15 +29,7 @@ def main():
     # Set page range for review (1-based, inclusive)
     PAGE_START = getattr(config, "PAGE_START")
     PAGE_END = getattr(config, "PAGE_END")
-    images = convert_from_path(pdf_path, dpi=config.DPI)
-    image_buffers = []
-    for page_num in range(PAGE_START, PAGE_END + 1):
-        if page_num - 1 < len(images):
-            image = images[page_num - 1]
-            buf = BytesIO()
-            image.save(buf, format="PNG")
-            buf.seek(0)
-            image_buffers.append((page_num, buf))
+    image_buffers = pdf_to_images_pymupdf(pdf_path, PAGE_START, PAGE_END)
     print(f"Converted {len(image_buffers)} pages to images in memory.")
 
     # Review all slides together
