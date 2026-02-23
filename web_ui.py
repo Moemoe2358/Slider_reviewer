@@ -26,7 +26,7 @@ def show_sample_pdf_buttons(sample_pdf_bytes):
     with col2:
         if "use_sample" not in st.session_state:
             st.session_state["use_sample"] = False
-        if st.button("Use sample PDF for review"):
+        if st.button("Use sample PDF for test"):
             st.session_state["use_sample"] = True
 
 def render_html_table(df):
@@ -84,7 +84,7 @@ if not hide_upload:
         if sample_pdf_bytes:
             if "use_sample" not in st.session_state:
                 st.session_state["use_sample"] = False
-            if st.button("Use sample PDF for review", use_container_width=True):
+            if st.button("Use sample PDF for test", use_container_width=True):
                 st.session_state["use_sample"] = True
                 st.rerun()
             st.download_button(
@@ -122,19 +122,22 @@ if pdf_path:
     elif st.button("Start Review"):
         st.session_state["review_started"] = True
     if st.session_state.get("review_started", False):
-        image_buffers = []
-        for page_num in range(page_start, page_end + 1):
-            if page_num - 1 < len(doc):
-                page = doc[page_num - 1]
-                pix = page.get_pixmap(dpi=config.DPI)
-                buf = BytesIO(pix.tobytes("png"))
-                image_buffers.append((page_num, buf))
-        # Show status: Reviewing...
-        status_placeholder = st.empty()
-        status_placeholder.markdown("<div style='background-color:#fffbe6;padding:8px;border-radius:4px;color:#b59b00;'>Reviewing...</div>", unsafe_allow_html=True)
-        all_issues = review_slides(image_buffers)
-        # Overwrite status with Review finished!
-        status_placeholder.markdown("<div style='background-color:#e6ffed;padding:8px;border-radius:4px;color:#228c22;'>Review finished!</div>", unsafe_allow_html=True)
+        if "review_results" not in st.session_state:
+            image_buffers = []
+            for page_num in range(page_start, page_end + 1):
+                if page_num - 1 < len(doc):
+                    page = doc[page_num - 1]
+                    pix = page.get_pixmap(dpi=config.DPI)
+                    buf = BytesIO(pix.tobytes("png"))
+                    image_buffers.append((page_num, buf))
+            # Show status: Reviewing...
+            status_placeholder = st.empty()
+            status_placeholder.markdown("<div style='background-color:#fffbe6;padding:8px;border-radius:4px;color:#b59b00;'>Reviewing...</div>", unsafe_allow_html=True)
+            all_issues = review_slides(image_buffers)
+            status_placeholder.markdown("<div style='background-color:#e6ffed;padding:8px;border-radius:4px;color:#228c22;'>Review finished!</div>", unsafe_allow_html=True)
+            st.session_state["review_results"] = all_issues
+        else:
+            all_issues = st.session_state["review_results"]
         if all_issues:
             import pandas as pd
             df = pd.DataFrame(all_issues)
@@ -146,7 +149,8 @@ if pdf_path:
                 label="Download CSV",
                 data=csv_buf,
                 file_name="review_issues.csv",
-                mime="text/csv"
+                mime="text/csv",
+                key="download_csv_button"
             )
             st.markdown(render_html_table(df), unsafe_allow_html=True)
         else:

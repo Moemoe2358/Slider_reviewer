@@ -58,16 +58,19 @@ def review_slides(images_with_pages) -> List[Dict]:
     )
     try:
         issues = json.loads(response.choices[0].message.content)
-        # Ensure 'Page' is a number and matches the fed PDF index
-        for issue in issues:
-            # Try to match to input page numbers, fallback to 1
-            if isinstance(issue.get('Page'), int):
-                continue
-            try:
-                # If Page is string like '1', convert to int
-                issue['Page'] = int(issue.get('Page', 1))
-            except Exception:
-                issue['Page'] = page_numbers[0] if page_numbers else 1
+        # Assign page numbers consistently for each issue group
+        if isinstance(issues, list):
+            # If ChatGPT returns a flat list, assign page numbers based on input order
+            for idx, issue in enumerate(issues):
+                issue['Page'] = page_numbers[idx % len(page_numbers)] if page_numbers else 1
+        else:
+            # If ChatGPT returns grouped issues, flatten and assign page numbers
+            flat_issues = []
+            for idx, group in enumerate(issues):
+                for issue in group:
+                    issue['Page'] = page_numbers[idx] if idx < len(page_numbers) else 1
+                    flat_issues.append(issue)
+            issues = flat_issues
         return issues
     except Exception:
         return [{
