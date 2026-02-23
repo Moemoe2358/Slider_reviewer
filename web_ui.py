@@ -37,6 +37,9 @@ else:
 
 uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
 
+st.markdown("**Files in current directory:**")
+st.write(os.listdir())
+
 if uploaded_pdf or use_sample:
     if use_sample:
         tmp_pdf_path = "test.pdf"
