@@ -15,20 +15,29 @@ This tool allows you to upload a PDF (such as slides), select specific pages, an
 
 If you don't have a PDF, you can download a sample file below to test the tool.
 """)
+sample_pdf_bytes = None
 with open("test.pdf", "rb") as f:
+    sample_pdf_bytes = f.read()
+col1, col2 = st.columns(2)
+with col1:
     st.download_button(
         label="Download sample PDF (test.pdf)",
-        data=f.read(),
+        data=sample_pdf_bytes,
         file_name="test.pdf",
         mime="application/pdf"
     )
+with col2:
+    use_sample = st.button("Use sample PDF for review")
 
 uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
 
-if uploaded_pdf:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
-        tmp_pdf.write(uploaded_pdf.read())
-        tmp_pdf_path = tmp_pdf.name
+if uploaded_pdf or use_sample:
+    if use_sample:
+        tmp_pdf_path = "test.pdf"
+    else:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
+            tmp_pdf.write(uploaded_pdf.read())
+            tmp_pdf_path = tmp_pdf.name
     doc = fitz.open(tmp_pdf_path)
     total_pages = len(doc)
     st.write(f"PDF has {total_pages} pages.")
@@ -46,8 +55,7 @@ if uploaded_pdf:
                 pix = page.get_pixmap(dpi=config.DPI)
                 buf = BytesIO(pix.tobytes("png"))
                 image_buffers.append((page_num, buf))
-        st.success(f"Reviewing {len(image_buffers)} pages...")
-
+        st.success(f"Converted {len(image_buffers)} pages to images in memory.")
         # Review all slides together
         all_issues = review_slides(image_buffers)
 
