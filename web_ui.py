@@ -1,5 +1,4 @@
 import streamlit as st
-import fitz  # PyMuPDF
 from io import BytesIO
 import tempfile
 import csv
@@ -13,8 +12,9 @@ st.markdown("""
 
 This tool allows you to upload a PDF (such as slides), select specific pages, and get an AI-powered review for format, logic, and typos. Download the results as a CSV file.
 
-If you don't have a PDF, you can download a sample file below to test the tool.
+If you don't have a PDF, you can use the sample file to test the tool.
 """)
+# UI for sample PDF and upload
 sample_pdf_bytes = None
 try:
     with open("test.pdf", "rb") as f:
@@ -40,14 +40,18 @@ uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
 st.markdown("**Files in current directory:**")
 st.write(os.listdir())
 
-if uploaded_pdf or use_sample:
-    if use_sample:
-        tmp_pdf_path = "test.pdf"
-    else:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
-            tmp_pdf.write(uploaded_pdf.read())
-            tmp_pdf_path = tmp_pdf.name
-    doc = fitz.open(tmp_pdf_path)
+# Main PDF processing logic
+pdf_path = None
+if uploaded_pdf:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
+        tmp_pdf.write(uploaded_pdf.read())
+        pdf_path = tmp_pdf.name
+elif use_sample and sample_pdf_bytes:
+    pdf_path = "test.pdf"
+
+if pdf_path:
+    import fitz
+    doc = fitz.open(pdf_path)
     total_pages = len(doc)
     st.write(f"PDF has {total_pages} pages.")
     page_start = st.number_input("Start page", min_value=1, max_value=total_pages, value=1)
@@ -118,4 +122,5 @@ if uploaded_pdf or use_sample:
 
     doc.close()
     # Clean up temp file
-    os.remove(tmp_pdf_path)
+    if uploaded_pdf:
+        os.remove(pdf_path)
