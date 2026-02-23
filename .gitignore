@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Jupyter Notebooks
+*.ipynb
+
+# VS Code
+.vscode/
+
+# Environment
+.env
+venv/
+ENV/
+
+# macOS
+.DS_Store
+
+# CSV and output
+review_issues.csv
+
+# Misc
+*.log
+*.tmp
+
+# Ignore PDF test files
+*.pdf
