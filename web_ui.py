@@ -14,6 +14,11 @@ This tool allows you to upload a PDF (such as slides), select specific pages, an
 
 If you don't have a PDF, you can use the sample file to test the tool.
 """)
+# Reset button to clear session state
+if st.button("Reset"):
+    st.session_state.clear()
+    st.experimental_rerun()
+
 # UI for sample PDF and upload
 sample_pdf_bytes = None
 try:
@@ -38,7 +43,11 @@ if sample_pdf_bytes:
 else:
     st.session_state["use_sample"] = False
 
-uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
+# Hide file uploader if sample PDF is selected
+if not st.session_state.get("use_sample", False):
+    uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
+else:
+    uploaded_pdf = None
 
 # Main PDF processing logic
 pdf_path = None
@@ -57,7 +66,7 @@ if pdf_path:
     st.write(f"PDF has {total_pages} pages.")
     page_start = st.number_input("Start page", min_value=1, max_value=total_pages, value=1)
     page_end = st.number_input("End page", min_value=page_start, max_value=total_pages, value=total_pages)
-    est_time_sec = (page_end - page_start + 1) * 15  # Estimate 15 seconds per page
+    est_time_sec = (page_end - page_start + 1) * 20  # Estimate 20 seconds per page
     st.info(f"Estimated review time: {est_time_sec} seconds")
     if page_end - page_start + 1 > 5:
         st.warning("Please select no more than 5 pages.")
@@ -69,7 +78,7 @@ if pdf_path:
                 pix = page.get_pixmap(dpi=config.DPI)
                 buf = BytesIO(pix.tobytes("png"))
                 image_buffers.append((page_num, buf))
-        st.success(f"Converted {len(image_buffers)} pages to images in memory.")
+        st.success(f"Reviewing...")
         # Review all slides together
         all_issues = review_slides(image_buffers)
 
@@ -78,6 +87,16 @@ if pdf_path:
             import pandas as pd
             df = pd.DataFrame(all_issues)
             df = df.reset_index(drop=True)
+            # Save CSV
+            csv_buf = BytesIO()
+            df.to_csv(csv_buf, index=False, encoding='utf-8-sig')
+            csv_buf.seek(0)
+            st.download_button(
+                label="Download CSV",
+                data=csv_buf,
+                file_name="review_issues.csv",
+                mime="text/csv"
+            )
             # Custom HTML table for better control over column width and wrapping
             def render_html_table(df):
                 html = '''<style>
@@ -108,16 +127,6 @@ if pdf_path:
                 html += '</table>'
                 return html
             st.markdown(render_html_table(df), unsafe_allow_html=True)
-            # Save CSV
-            csv_buf = BytesIO()
-            df.to_csv(csv_buf, index=False, encoding='utf-8-sig')
-            csv_buf.seek(0)
-            st.download_button(
-                label="Download CSV",
-                data=csv_buf,
-                file_name="review_issues.csv",
-                mime="text/csv"
-            )
         else:
             st.info("No issues found.")
 
