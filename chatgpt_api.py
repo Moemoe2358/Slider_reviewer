@@ -12,55 +12,6 @@ load_dotenv()
 client = OpenAI()
 
 
-def review_slide_image(image_buffer, page_number=None) -> List[Dict]:
-    """
-    Sends a PDF page image (BytesIO) to ChatGPT API for review.
-    Returns a list of structured issue points for the slide.
-    """
-    import base64
-    image_base64 = base64.b64encode(image_buffer.getvalue()).decode("utf-8")
-    prompt = (
-        "Please review this slide for unprofessional formatting, logic and typos. "
-        "No need to mention what is good. Only pick up obvious issues and give suggestions for improvement. "
-        "Return the result as a JSON array, each item with keys: 'page', 'issue_type', 'severity', 'description', 'suggestion'. "
-        "'issue_type' should be one of: format, logic, typo. 'severity' should be one of: high, medium, low. "
-        "Please use the slide language as output."
-    )
-    response = client.chat.completions.create(
-        model="gpt-5-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are an expert business consultant. Check the slide for unprofessional format, logic, and typos."
-            },
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_base64}"}}
-                ]
-            }
-        ]
-    )
-    import json
-    try:
-        issues = json.loads(response.choices[0].message.content)
-        # Optionally, add page number if not present
-        for issue in issues:
-            if page_number is not None:
-                issue['page'] = page_number
-        return issues
-    except Exception:
-        # If parsing fails, return as a single issue with raw text
-        return [{
-            'page': page_number,
-            'issue_type': 'unknown',
-            'severity': 'unknown',
-            'description': response.choices[0].message.content,
-            'suggestion': ''
-        }]
-
-
 def review_slides(images_with_pages) -> List[Dict]:
     """
     Sends multiple PDF page images (list of (page_number, BytesIO)) to ChatGPT API for review together.
@@ -78,8 +29,8 @@ def review_slides(images_with_pages) -> List[Dict]:
     prompt = (
         "Please review the following slides for unprofessional formatting, logic and typos. "
         "No need to mention what is good. Only pick up obvious issues and give suggestions for improvement. "
-        "Return the result as a JSON array, each item with keys: 'page', 'issue_type', 'severity', 'description', 'suggestion'. "
-        "'issue_type' should be one of: format, logic, typo. 'severity' should be one of: high, medium, low. "
+        "Return the result as a JSON array, each item with keys: 'Page', 'Issue Type', 'Severity', 'Description', 'Suggestion'. "
+        "'Issue Type' should be one of: format, logic, typo. 'Severity' should be one of: High, Medium, Low. "
         "Please use the slide language as output."
     )
     user_content = [
@@ -108,9 +59,9 @@ def review_slides(images_with_pages) -> List[Dict]:
         return issues
     except Exception:
         return [{
-            'page': 'all',
-            'issue_type': 'unknown',
-            'severity': 'unknown',
-            'description': response.choices[0].message.content,
-            'suggestion': ''
+            'Page': 'all',
+            'Issue_type': 'unknown',
+            'Severity': 'unknown',
+            'Description': response.choices[0].message.content,
+            'Suggestion': ''
         }]
