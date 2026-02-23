@@ -31,22 +31,23 @@ if sample_pdf_bytes:
             mime="application/pdf"
         )
     with col2:
-        use_sample = st.button("Use sample PDF for review")
+        if "use_sample" not in st.session_state:
+            st.session_state["use_sample"] = False
+        if st.button("Use sample PDF for review"):
+            st.session_state["use_sample"] = True
 else:
-    use_sample = False
+    st.session_state["use_sample"] = False
 
 uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
-
-st.markdown("**Files in current directory:**")
-st.write(os.listdir())
 
 # Main PDF processing logic
 pdf_path = None
 if uploaded_pdf:
+    st.session_state["use_sample"] = False
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
         tmp_pdf.write(uploaded_pdf.read())
         pdf_path = tmp_pdf.name
-elif use_sample and sample_pdf_bytes:
+elif st.session_state.get("use_sample", False) and sample_pdf_bytes:
     pdf_path = "test.pdf"
 
 if pdf_path:
