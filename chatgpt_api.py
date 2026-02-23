@@ -30,7 +30,7 @@ def review_slides(images_with_pages) -> List[Dict]:
         "Please review the following slides for unprofessional formatting, logic and typos. "
         "No need to mention what is good. Only pick up obvious issues and give suggestions for improvement. "
         "Return the result as a JSON array, each item with keys: 'Page', 'Issue Type', 'Severity', 'Description', 'Suggestion'. "
-        "'Issue Type' should be one of: format, logic, typo. 'Severity' should be one of: High, Medium, Low. "
+        "'Issue Type' should be one of: Format, Logic, Typo. 'Severity' should be one of: High, Medium, Low. "
         "Please use the slide language as output."
     )
     user_content = [
@@ -46,7 +46,7 @@ def review_slides(images_with_pages) -> List[Dict]:
         messages=[
             {
                 "role": "system",
-                "content": "You are an expert business consultant. Check the slides for unprofessional format, logic, and typos."
+                "content": "You are an expert business consultant. Check the slides for unprofessional formatting, logic, and typos."
             },
             {
                 "role": "user",

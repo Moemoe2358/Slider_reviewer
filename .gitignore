@@ -25,6 +25,3 @@ review_issues.csv
 # Misc
 *.log
 *.tmp
-
-# Ignore PDF test files
-*.pdf

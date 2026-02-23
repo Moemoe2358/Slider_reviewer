@@ -7,12 +7,21 @@ import os
 import config
 from chatgpt_api import review_slides
 
-st.title("Slide Reviewer")
+st.title("PDF Slide Reviewer (ChatGPT)")
 st.markdown("""
 **You can select a page range for review. Maximum 5 pages at a time.**
 
-This tool allows you to upload a PDF, select specific pages, and get an AI-powered review for format, logic, and typos. Download the results as a CSV file.
+This tool allows you to upload a PDF (such as slides), select specific pages, and get an AI-powered review for format, logic, and typos. Download the results as a CSV file.
+
+If you don't have a PDF, you can download a sample file below to test the tool.
 """)
+with open("test.pdf", "rb") as f:
+    st.download_button(
+        label="Download sample PDF (test.pdf)",
+        data=f.read(),
+        file_name="test.pdf",
+        mime="application/pdf"
+    )
 
 uploaded_pdf = st.file_uploader("Upload PDF file", type=["pdf"])
 
